@@ -41,3 +41,20 @@ pip install -r requirements.txt
 5. Add tests to verify key behaviors.
 6. Connect your logic to the Streamlit UI in `app.py`.
 7. Refine UML so it matches what you actually built.
+
+# Testing PawPal+
+
+To run tests: python -m pytest
+
+1. test_mark_completed_updates_completion_status verifies that Task.mark_completed() marks tasks to b complete
+2. test_add_task_increases_pet_task_count verifies that tasks are added corectly
+3. test_scheduler_sort_and_conflict_detection verifis that sort and conflicts are found correctly incase of duplicate scheduled tasks.
+4. test_scheduler_recurring_reschedule validates that completeing a daily task will create a new next-day task to mimic recurring tasks
+5. test_scheduler_complete_task_creates_next_recurring_instance checks for daily tasks and preservse the recurring quality of daily tasks
+6. test_scheduler_complete_task_nonrecurring_returns_same_task confirms that one-time tasks are marked as completed and does not add a new task
+7. test_scheduler_filter_tasks_by_completed_and_pet_name validates that filter works by filtering by completion status and by pet name
+8. test_sort_tasks_by_time_hhmm_string checks that time strings are sorted correctly in chronological order
+
+# Features
+
+<a href="image.png" target="_blank"><img src='image.png' title='PawPal App' width='' alt='PawPal App' class='center-block' /></a>.

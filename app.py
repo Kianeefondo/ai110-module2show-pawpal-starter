@@ -84,35 +84,53 @@ if st.session_state.owner:
         elif completed_filter == "incomplete":
             status_filter = False
 
-        tasks = []
+        selected_pet_name = None
         if selected_pet_filter:
-            tasks = st.session_state.scheduler.get_tasks(st.session_state.owner.owner_id, pet_id=selected_pet_filter, completed=status_filter)
-            tasks = [(next(p for p in st.session_state.owner.pets if p.pet_id == selected_pet_filter).name, t) for t in tasks]
-        else:
-            for pet in st.session_state.owner.pets:
-                filtered = st.session_state.scheduler.get_tasks(st.session_state.owner.owner_id, pet_id=pet.pet_id, completed=status_filter)
-                tasks.extend([(pet.name, t) for t in filtered])
+            selected_pet_name = next(p for p in st.session_state.owner.pets if p.pet_id == selected_pet_filter).name
 
-        tasks = sorted(tasks, key=lambda e: e[1].scheduled_time or datetime.max)
+        tasks = []
+        for pet in st.session_state.owner.pets:
+            if selected_pet_name and pet.name != selected_pet_name:
+                continue
+            tasks.extend([{"pet": pet.name, "task": task} for task in pet.get_tasks(completed=status_filter)])
 
         if not tasks:
-            st.info("No tasks to schedule with current filters.")
+            st.info("No tasks found with your selected filters.")
         else:
-            st.write("#### Planned tasks (sorted by time)")
-            for pet_name, task in tasks:
-                due = task.scheduled_time.strftime("%H:%M") if task.scheduled_time else "No time"
-                st.write(f"- {pet_name}: {task.description} at {due} ({task.frequency})")
+            sorted_tasks = st.session_state.scheduler.sort_tasks_by_time([item["task"] for item in tasks])
+            task_to_pet = {item["task"].task_id: item["pet"] for item in tasks}
+            table_data = []
+            for task in sorted_tasks:
+                table_data.append(
+                    {
+                        "Pet": task_to_pet.get(task.task_id, "Unknown"),
+                        "Task": task.description,
+                        "Scheduled": task.scheduled_time.strftime("%Y-%m-%d %H:%M") if task.scheduled_time else "No schedule",
+                        "Frequency": task.frequency,
+                        "Completed": "Yes" if task.completed else "No",
+                    }
+                )
+
+            st.success("Schedule generated with sorted tasks")
+            st.table(table_data)
+
+            warnings = st.session_state.scheduler.detect_conflicts_messages(st.session_state.owner.owner_id)
+            if warnings:
+                st.warning("⚠️ Scheduling conflicts found")
+                for warning in warnings:
+                    st.warning(warning)
+            else:
+                st.success("No conflicts found for selected tasks.")
 
     st.markdown("### Conflict detection")
     if st.button("Check conflicts"):
-        conflicts = st.session_state.scheduler.detect_conflicts(st.session_state.owner.owner_id)
-        if not conflicts:
+        warnings = st.session_state.scheduler.detect_conflicts_messages(st.session_state.owner.owner_id)
+        if not warnings:
             st.success("No conflicts detected.")
         else:
             st.warning("Detected time conflicts:")
-            for group in conflicts:
-                group_text = ", ".join([f"{t.description} (at {t.scheduled_time.strftime('%H:%M')})" for t in group])
-                st.write(f"- {group_text}")
+            for warning in warnings:
+                st.warning(f"• {warning}")
 
     st.markdown("### Recurring tasks processing")
     if st.button("Process recurring completed tasks"):
