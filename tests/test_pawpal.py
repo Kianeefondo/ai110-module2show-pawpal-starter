@@ -56,9 +56,11 @@ def test_scheduler_recurring_reschedule():
     task = Task(task_id="t4", description="Feed", scheduled_time=date, frequency="daily")
     pet.add_task(task)
 
-    assert scheduler.complete_task("o2", "p2", "t4") is True
-    assert task.completed is False
-    assert task.scheduled_time == date + timedelta(days=1)
+    next_task = scheduler.complete_task("o2", "p2", "t4")
+    assert next_task is not task
+    assert next_task.completed is False
+    assert next_task.scheduled_time == date + timedelta(days=1)
+    assert task.completed is True
 
 
 def test_scheduler_complete_task_creates_next_recurring_instance():
