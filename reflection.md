@@ -7,9 +7,24 @@
 - Briefly describe your initial UML design.
 - What classes did you include, and what responsibilities did you assign to each?
 
+Classes: Owner, Pet, Task, Schedule, Scheduler, ScheduledItem
+
+Owner           Scheduler
+|-> Task        |-> ScheduledItem -> Task
+|-> Pet         
+
+Owner - User info and tasks
+Pet - Pet info and profile
+Task - tracks each task and care actions
+Scheduler - holds the functions to manage tasks
+Scheduled item - task specifications such as time and reason
+
 **b. Design changes**
 
 - Did your design change during implementation?
+
+My design did change. I added Schedule to have a 
+
 - If yes, describe at least one change and why you made it.
 
 ---
